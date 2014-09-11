@@ -18,9 +18,9 @@
   "Generates num-cities amount of random cities"
   [num-cities dist-x dist-y]
   ;; Create map of randomly generated cities
-  {:num num-cities
-   :map (vec (loop [num num-cities
-                    cities []]
+
+  (vec (loop [num num-cities
+               cities []]
           (if (= num 0)
             cities
             (let [n-num (- num 1)
@@ -29,8 +29,7 @@
                                    (rand-int dist-x)
                                    (rand-int dist-y))
                   n-cities (conj cities new-city)]
-              (recur n-num n-cities)))))})
-
+              (recur n-num n-cities))))))
 (defn distance-between
   "Finds distance between two cities"
   [city-1 city-2]
@@ -54,7 +53,7 @@
          behind (rest route)
          distance 0]
     (if (= (count behind) 0)
-      distance
+      {:distance distance :route route}
       (let [n-ahead (rest ahead)
             n-behind (rest behind)
             n-distance (+ distance (distance-between
