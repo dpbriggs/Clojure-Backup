@@ -6,8 +6,17 @@
   [& args]
   (println "Hello, World!"))
 
-(def city-struct
-  {:a [0 3 8 7]
-   :b [3 0 9 -1]
-   :c [8 9 0 4]
-   :d [7 -1 4 0]})
+(defstruct city :x :y)
+
+(defn gen-random-city-scape
+  "Generates several random cities"
+  [num-cities dist-x dist-y]
+  {:num num-cities
+   :map (repeatedly num-cities #(struct city (rand-int dist-x) (rand-int dist-y)))})
+
+(defn city-dist
+  "Finds distance between two cities"
+  [city-1 city-2]
+  (let [xdist (Math/abs (- (:x city-1) (:x city-2)))
+        ydist (Math/abs (- (:y city-1) (:y city-2)))]
+    (Math/pow (+ (* xdist xdist) (* ydist ydist)) 0.5)))
