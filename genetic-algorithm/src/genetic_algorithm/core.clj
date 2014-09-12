@@ -43,10 +43,7 @@
   "Finds distance between two cities"
   [city-1 city-2]
   (let [xdist (Math/abs (- (:x city-1) (:x city-2)))
-        ydist (Math/abs (- (:y city-1) (:y city-2)))
-       ; x (println city-1 " ::: " city-2)
-       ; y (println "xdist: " xdist " & ydist: " ydist)
-        ]
+        ydist (Math/abs (- (:y city-1) (:y city-2)))]
     (Math/pow (+ (* xdist xdist) (* ydist ydist)) 0.5)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -77,6 +74,37 @@
   (take N (sort-by :distance routes)))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;
+;; Start of crossover ;;
+;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defn gen-starting-pop
+  "Convenience function to grab fit pop"
+  [fitness-number num-cities city-dist-x city-dist-y]
+  (fitness-test 10
+                (scramble-city-order num-cities
+                                        (gen-random-city-scape num-cities
+                                                               city-dist-x
+                                                              city-dist-y))))
+
+
+
+
+(defn random-swath
+  [parent-1]
+  (let [size (apply count parent-1)
+        pos-1 (rand-int size)
+        pos-2 (rand-int size)
+        o (println (- pos-1 pos-2) " : " pos-1 " - " pos-2)]
+    (if (and (>= pos-1 pos-2) (>= (Math/abs (- pos-1 pos-2)) 3))
+      (random-swath parent-1)
+      (range pos-1 pos-2))))
+
+
+(defn pmx-crossover
+  [parent-1 parent-2]
+  )
 
 (defn -main
   "I don't do a whole lot ... yet."
