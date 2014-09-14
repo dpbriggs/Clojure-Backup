@@ -38,6 +38,7 @@
 (defn scramble-city-order
   "Returns num amount of randomly permuted city routes"
   [cities]
+  ; Find unique permutes of (6 times (count cities)) permutations of cities
   (distinct (into [] (repeatedly (* (count cities) 6) #(shuffle cities)))))
 
 (defn distance-between
@@ -57,14 +58,14 @@
   "Finds total distance taken in route"
   [route]
   (loop [current-city route
-         next-city (rest route) ;; ensure
+         next-city (rest route) ;; ensure we never are on same city
          distance 0]
-    (if (= (count next-city) 0)
+    (if (= (count next-city) 0) ; Run out of cities
       {:distance distance :route route}
       ;; n --> new
-      (let [n-current-city (rest current-city)
+      (let [n-current-city (rest current-city) ; Move heads up
             n-next-city (rest next-city)
-            n-distance (+ distance (distance-between
+            n-distance (+ distance (distance-between ; Add distance to total
                                    (first current-city)
                                    (first next-city)))]
         (recur n-current-city n-next-city n-distance)))))
@@ -72,6 +73,7 @@
 (defn fitness-test
   "Grabs top N routes"
   [N routes]
+  ; fitness is dummy variable to hold vector of fit routes
   (let [fitness (vec (take N (sort-by :distance (pmap route-distance routes))))
         fittest (:distance (first fitness))
         new-routes (vec (map :route fitness))]
@@ -90,7 +92,6 @@
                 (scramble-city-order (gen-random-city-scape num-cities
                                                             city-dist-x
                                                             city-dist-y))))
-
 (defn rand-int-between
   "Return a rand-int between two bounds"
   [upper-bound lower-bound]
@@ -102,6 +103,7 @@
    (vec (assoc v i2 (v i1) i1 (v i2)))))
 
 (defn mutate
+  "Randomly swich values in vector to simulate genetic mutations"
   [child]
   (if (>= (rand-int 99) 10) ;; 11% chance
     child
@@ -113,7 +115,7 @@
                (rand-int (count child)))))))
 
 (defn non-swath-values
-  "Removes "
+  "Removes values from parent-2 found in swath to avoid duplicates"
   [parent-2 swath]
   (filter #(not (contains? swath)) parent-2))
 
@@ -181,11 +183,33 @@
         (recur n-stop n-population n-fitness-dists)))))
 
 (defn run-multi-parallel
-  [starting-route times num-cycles top-fit-num]
-  (let [chroms (repeat times starting-route)]
-    (sort (pmap #(:best-time (evolution-cycles % num-cycles top-fit-num)) chroms))))
+  "Run algorithm several times in parallel"
+  [starting-route parallel-times num-cycles top-fit-num]
+  (let [chroms (repeat parallel-times starting-route)]
+    (pmap #(evolution-cycles % num-cycles top-fit-num) chroms))) ;pmap -> parallel
+
+(def manu-and-i-data-set [{:name "P", :x 72, :y 92, :pos 15}
+                          {:name "O", :x 75, :y 35, :pos 14}
+                          {:name "N", :x 38, :y 99, :pos 13}
+                          {:name "M", :x 95, :y 40, :pos 12}
+                          {:name "L", :x 32, :y 50, :pos 11}
+                          {:name "K", :x 1, :y 22, :pos 10}
+                          {:name "J", :x 81, :y 23, :pos 9}
+                          {:name "I", :x 83, :y 16, :pos 8}
+                          {:name "H", :x 88, :y 13, :pos 7}
+                          {:name "G", :x 36, :y 99, :pos 6}
+                          {:name "F", :x 6, :y 54, :pos 5}
+                          {:name "E", :x 53, :y 4, :pos 4}
+                          {:name "D", :x 76, :y 80, :pos 3}
+                          {:name "C", :x 74, :y 42, :pos 2}
+                          {:name "B", :x 56, :y 54, :pos 1}
+                          {:name "A", :x 44, :y 79, :pos 0}])
 
 (defn -main
-  "I don't do a whole lot ... yet."
-  [& args]
-  ())
+  "Fancy wrapper for run-multi-parallel function"
+  ;; Run with custom route
+  ([starting-route parallel-times num-cycles top-fit-num]
+    (run-multi-parallel starting-route parallel-times num-cycles top-fit-num))
+  ;; Run without custom route
+  ([parallel-times num-cycles top-fit-num]
+     (run-multi-parallel manu-and-i-data-set parallel-times num-cycles top-fit-num)))
