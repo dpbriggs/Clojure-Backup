@@ -74,7 +74,7 @@
   "Grabs top N routes"
   [N routes]
   ; fitness is dummy variable to hold vector of fit routes
-  (let [fitness (vec (take N (sort-by :distance (pmap route-distance routes))))
+  (let [fitness (vec (take N (sort-by :distance (map route-distance routes))))
         fittest (:distance (first fitness))
         new-routes (vec (map :route fitness))]
     {:top-distance fittest :routes new-routes}))
@@ -160,8 +160,8 @@
   "Takes the routes and forces pairs of routes to make babies"
   [routes]
   (let [partners (partition 2 (shuffle routes))
-        children-1 (pmap simple-crossover partners) ;; parallelize crossover with pmap
-        children-2 (pmap simple-crossover partners) ;; Double the children
+        children-1 (map simple-crossover partners)
+        children-2 (map simple-crossover partners) ;; Double the children (to 4)
         all-children (concat children-1 children-2)]
     (apply concat all-children)))
 
@@ -209,9 +209,9 @@
   "Fancy wrapper for run-multi-parallel function"
   ;; Run with custom route
   ([starting-route parallel-times num-cycles top-fit-num]
-    (run-multi-parallel starting-route parallel-times num-cycles top-fit-num))
+    (println (run-multi-parallel starting-route parallel-times num-cycles top-fit-num)))
   ;; Run without custom route
   ([parallel-times num-cycles top-fit-num]
-     (run-multi-parallel manu-and-i-data-set parallel-times num-cycles top-fit-num))
+     (println (run-multi-parallel manu-and-i-data-set parallel-times num-cycles top-fit-num)))
   ([]
      (println (sort (map :best-time (run-multi-parallel manu-and-i-data-set 40 1000 10))))))
