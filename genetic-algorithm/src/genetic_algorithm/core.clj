@@ -41,7 +41,7 @@
   (distinct (into [] (repeatedly (* (count cities) 6) #(shuffle cities)))))
 
 (defn distance-between
-  "Finds distance between two cities"
+  "Finds distance between two cities using pythagorean theorum"
   [city-1 city-2]
   (let [xdist (Math/abs (- (:x city-1) (:x city-2)))
         ydist (Math/abs (- (:y city-1) (:y city-2)))]
@@ -72,7 +72,7 @@
 (defn fitness-test
   "Grabs top N routes"
   [N routes]
-  (let [fitness (vec (take N (sort-by :distance (map route-distance routes))))
+  (let [fitness (vec (take N (sort-by :distance (pmap route-distance routes))))
         fittest (:distance (first fitness))
         new-routes (vec (map :route fitness))]
     {:top-distance fittest :routes new-routes}))
@@ -90,31 +90,20 @@
                 (scramble-city-order (gen-random-city-scape num-cities
                                                             city-dist-x
                                                             city-dist-y))))
-(defn random-swath
-  [parent-1]
-  (let [size (apply count parent-1)
-        pos-1 (rand-int size)
-        pos-2 (rand-int size)
-        o (println (- pos-1 pos-2) " : " pos-1 " - " pos-2)]
-    (if (and (>= pos-1 pos-2) (>= (Math/abs (- pos-1 pos-2)) 3))
-      (random-swath parent-1)
-      (range pos-1 pos-2))))
-
-
-(defn pmx-crossover
-  [parent-1 parent-2])
 
 (defn rand-int-between
+  "Return a rand-int between two bounds"
   [upper-bound lower-bound]
   (+ (rand-int (- upper-bound lower-bound)) lower-bound))
 
 (defn swap [pop i1 i2]
+  "Swap two values i1 and i2 in vector v"
   (let [v (vec pop)]
    (vec (assoc v i2 (v i1) i1 (v i2)))))
 
 (defn mutate
   [child]
-  (if (>= (rand-int 99) 10) ;; 10% chance
+  (if (>= (rand-int 99) 10) ;; 11% chance
     child
     (loop [i1 (rand-int (count child))
            i2 (rand-int  (count child))] ;; ensure we're not flipping same vals
@@ -124,6 +113,7 @@
                (rand-int (count child)))))))
 
 (defn non-swath-values
+  "Removes "
   [parent-2 swath]
   (filter #(not (contains? swath)) parent-2))
 
@@ -165,10 +155,11 @@
 
 
 (defn apply-crossover
+  "Takes the routes and forces pairs of routes to make babies"
   [routes]
   (let [partners (partition 2 (shuffle routes))
-        children-1 (map simple-crossover partners)
-        children-2 (map simple-crossover partners) ;; Double the children
+        children-1 (pmap simple-crossover partners) ;; parallelize crossover with pmap
+        children-2 (pmap simple-crossover partners) ;; Double the children
         all-children (concat children-1 children-2)]
     (apply concat all-children)))
 
@@ -180,6 +171,7 @@
          fitness-dists []]
     (if (= stop 0)
       {:top-distances fitness-dists
+       :best-time (last fitness-dists)
        :population population
        :top-route (first population)}
       (let [n-stop (- stop 1)
@@ -188,8 +180,12 @@
             n-fitness-dists (conj fitness-dists (:top-distance fit))]
         (recur n-stop n-population n-fitness-dists)))))
 
+(defn run-multi-parallel
+  [starting-route times num-cycles top-fit-num]
+  (let [chroms (repeat times starting-route)]
+    (sort (pmap #(:best-time (evolution-cycles % num-cycles top-fit-num)) chroms))))
 
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
-  (println "Hello, World!"))
+  ())
