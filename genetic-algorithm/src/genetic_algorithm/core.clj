@@ -212,4 +212,6 @@
     (run-multi-parallel starting-route parallel-times num-cycles top-fit-num))
   ;; Run without custom route
   ([parallel-times num-cycles top-fit-num]
-     (run-multi-parallel manu-and-i-data-set parallel-times num-cycles top-fit-num)))
+     (run-multi-parallel manu-and-i-data-set parallel-times num-cycles top-fit-num))
+  ([]
+     (println (sort (map :best-time (run-multi-parallel manu-and-i-data-set 40 1000 10))))))
