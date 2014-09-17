@@ -24,14 +24,14 @@
   ;; Create map of randomly generated cities
   (vec (loop [num num-cities
               cities []]
-         (if (= num 0)
+         (if (zero? num)
            cities
-           (let [n-num (- num 1)
+           (let [n-num (dec num)
                  new-city (struct city
                                   (gen-city-name n-num)
                                   (rand-int dist-x)
                                   (rand-int dist-y)
-                                  (- num 1))
+                                  (dec num))
                  n-cities (conj cities new-city)]
              (recur n-num n-cities))))))
 
@@ -39,7 +39,7 @@
   "Returns num amount of randomly permuted city routes"
   [cities]
   ; Find unique permutes of (6 times (count cities)) permutations of cities
-  (distinct (into [] (repeatedly (* (count cities) 6) #(shuffle cities)))))
+  (distinct (vec (repeatedly (* (count cities) 6) #(shuffle cities)))))
 
 (defn distance-between
   "Finds distance between two cities using pythagorean theorum"
@@ -60,7 +60,7 @@
   (loop [current-city route
          next-city (rest route) ;; ensure we never are on same city
          distance 0]
-    (if (= (count next-city) 0) ; Run out of cities
+    (if (zero? (count next-city)) ; Run out of cities
       {:distance distance :route route}
       ;; n --> new
       (let [n-current-city (rest current-city) ; Move heads up
@@ -171,12 +171,12 @@
   (loop [stop num-cycles
          population (:routes (fitness-test top-fit-num (scramble-city-order route)))
          fitness-dists []]
-    (if (= stop 0)
+    (if (zero? stop)
       {:top-distances fitness-dists
        :best-time (last fitness-dists)
        :population population
        :top-route (first population)}
-      (let [n-stop (- stop 1)
+      (let [n-stop (dec stop)
             fit (fitness-test top-fit-num (apply-crossover population))
             n-population (:routes fit)
             n-fitness-dists (conj fitness-dists (:top-distance fit))]
