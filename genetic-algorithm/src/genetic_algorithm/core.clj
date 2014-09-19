@@ -36,12 +36,12 @@
 	     (recur n-num n-cities))))))
 
 (defn scramble-city-order
-  "Returns num amount of randomly permuted city routes"
+  "Returns 6 times the number of cities of randomly permuted city routes"
   [cities]
   ; Find unique permutes of (6 times (count cities)) permutations of cities
   (->> #(shuffle cities)
-       (repeatedly (* (count cities) 6))
-       distinct))
+       (repeatedly (* (count cities) 6)) ; repeatedly shuffle cities 6 * (count cities)
+       distinct)) ; get me all the unique routes
 
 (defn distance-between
   "Finds distance between two cities using pythagorean theorum"
@@ -62,7 +62,7 @@
   (loop [current-city route
 	 next-city    (rest route) ;; ensure we never are on same city
 	 distance     0]
-    (if (zero? (count next-city)) ; Run out of cities
+    (if (zero? (count next-city)) ; Ran out of cities
       {:distance distance :route route}
       ;; n --> new
       (let [n-current-city (rest current-city) ; Move heads up
