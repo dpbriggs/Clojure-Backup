@@ -1,32 +1,14 @@
 # genetic-algorithm
 
-FIXME: description
+An implementation of a genetic algorithm to find the shortest distance between points on an xy graph. If you're feeling fancy we can call the points cities and the order of the vector holding the cities the route to take, then this algorithm is approximating the solution to the travelling salesmen problem.
 
 ## Installation
 
-Download from http://example.com/FIXME.
+Clone / download git repo, compile with leiningen.
 
 ## Usage
 
-FIXME: explanation
-
-    $ java -jar genetic-algorithm-0.1.0-standalone.jar [args]
-
-## Options
-
-FIXME: listing of options this app accepts.
-
-## Examples
-
-...
-
-### Bugs
-
-...
-
-### Any Other Sections
-### That You Think
-### Might be Useful
+    $ java -jar genetic-algorithm-0.1.0-standalone.jar [number-of-processes number-of-cycles fit-population-max]
 
 ## License
 
