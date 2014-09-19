@@ -22,7 +22,7 @@
   "Generates num-cities amount of random cities on a map"
   [num-cities dist-x dist-y]
   ;; Create map of randomly generated cities
-  (vec (loop [num num-cities
+  (vec (loop [num    num-cities
 	      cities []]
 	 (if (zero? num)
 	   cities
@@ -60,24 +60,28 @@
   "Finds total distance taken in route"
   [route]
   (loop [current-city route
-	 next-city (rest route) ;; ensure we never are on same city
-	 distance 0]
+	 next-city    (rest route) ;; ensure we never are on same city
+	 distance     0]
     (if (zero? (count next-city)) ; Run out of cities
       {:distance distance :route route}
       ;; n --> new
       (let [n-current-city (rest current-city) ; Move heads up
-	    n-next-city (rest next-city)
-	    n-distance (+ distance (distance-between ; Add distance to total
-				   (first current-city)
-				   (first next-city)))]
+	    n-next-city    (rest next-city)
+	    n-distance     (+ distance (distance-between ; Add distance to total
+					(first current-city)
+					(first next-city)))]
 	(recur n-current-city n-next-city n-distance)))))
 
 (defn fitness-test
   "Grabs top N routes"
   [N routes]
   ; fitness is dummy variable to hold vector of fit routes
-  (let [fitness (vec (take N (sort-by :distance (map route-distance routes))))
-	fittest (:distance (first fitness))
+  (let [fitness    (->> routes
+			(map route-distance)
+			(sort-by :distance)
+			(take N)
+			vec)
+	fittest    (:distance (first fitness))
 	new-routes (vec (map :route fitness))]
     {:top-distance fittest :routes new-routes}))
 
@@ -111,7 +115,7 @@
   (if (>= (rand-int 99) 10) ;; 11% chance
     child
     (loop [i1 (rand-int (count child))
-	   i2 (rand-int  (count child))] ;; ensure we're not flipping same vals
+	   i2 (rand-int (count child))] ;; ensure we're not flipping same vals
       (if (not= i1 i2)
 	(swap child i1 i2)
 	(recur (rand-int (count child))
@@ -133,55 +137,58 @@
   ;Repeat with reversed parents            "
 
   [[parent-1 parent-2]]
-  (let [len (count parent-1)
-	swath (rand-int-between (- len 2) (quot len 4))
+  (let [len          (count parent-1)
+	swath        (rand-int-between (- len 2) (quot len 4))
 	starting-pos (rand-int (- len swath))
 
 	;; Parent 1
 	swath-part-1 (->> parent-2
-			(take (+ swath starting-pos))
-			(drop starting-pos)
-			(vec))
-	non-swath-1 (remove (set swath-part-1) parent-1)
-	head-1 (take starting-pos non-swath-1)
-	tail-1 (take-last (- len swath starting-pos) non-swath-1)
-	child-1 (mutate (concat head-1 swath-part-1 tail-1))
+			  (take (+ swath starting-pos))
+			  (drop starting-pos)
+			  (vec))
+	non-swath-1  (remove (set swath-part-1) parent-1)
+	head-1       (take starting-pos non-swath-1)
+	tail-1       (take-last (- len swath starting-pos) non-swath-1)
+	child-1      (mutate (concat head-1 swath-part-1 tail-1))
 
 	;; Parent 2 (same thing except parents are flipped)
 	swath-part-2 (->> parent-1
-			(take (+ swath starting-pos))
-			(drop starting-pos)
-			(vec))
-	non-swath-2 (remove (set swath-part-2) parent-2)
-	head-2 (take starting-pos non-swath-2)
-	tail-2 (take-last (- len swath starting-pos) non-swath-2)
-	child-2 (mutate (concat head-2 swath-part-2 tail-2))]
+			  (take (+ swath starting-pos))
+			  (drop starting-pos)
+			  (vec))
+	non-swath-2  (remove (set swath-part-2) parent-2)
+	head-2       (take starting-pos non-swath-2)
+	tail-2       (take-last (- len swath starting-pos) non-swath-2)
+	child-2      (mutate (concat head-2 swath-part-2 tail-2))]
     [child-1 child-2]))
 
 
 (defn apply-crossover
   "Takes the routes and forces pairs of routes to make babies"
   [routes]
-  (let [partners (partition 2 (shuffle routes))
-	children-1 (map simple-crossover partners)
-	children-2 (map simple-crossover partners) ;; Double the children (to 4)
+  (let [partners     (partition 2 (shuffle routes))
+	children-1   (map simple-crossover partners)
+	children-2   (map simple-crossover partners) ;; Double the children (to 4)
 	all-children (concat children-1 children-2)]
     (apply concat all-children)))
 
 (defn evolution-cycles
   "applies crossover/fitness cycles num-cycles amount of times to a route"
   [route num-cycles top-fit-num]
-  (loop [stop num-cycles
-	 population (:routes (fitness-test top-fit-num (scramble-city-order route)))
+  (loop [stop          num-cycles
+	 population    (->> route
+			    scramble-city-order
+			    (fitness-test top-fit-num)
+			    :routes)
 	 fitness-dists []]
     (if (zero? stop)
       {:top-distances fitness-dists
-       :best-time (last fitness-dists)
-       :population population
-       :top-route (first population)}
-      (let [n-stop (dec stop)
-	    fit (fitness-test top-fit-num (apply-crossover population))
-	    n-population (:routes fit)
+       :best-time     (last fitness-dists)
+       :population    population
+       :top-route     (first population)}
+      (let [n-stop          (dec stop)
+	    fit             (fitness-test top-fit-num (apply-crossover population))
+	    n-population    (:routes fit)
 	    n-fitness-dists (conj fitness-dists (:top-distance fit))]
 	(recur n-stop n-population n-fitness-dists)))))
 
